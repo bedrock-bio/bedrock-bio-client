@@ -1,0 +1,29 @@
+name: publish-dev
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - name: check-out-repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: install-uv
+        uses: astral-sh/setup-uv@v4
+      - name: set-dev-version
+        run: |
+          VERSION=$(grep '^version' pyproject.toml | cut -d'"' -f2)
+          COMMIT_COUNT=$(git rev-list --count HEAD)
+          sed -i "s/^version = .*/version = \"${VERSION}.dev${COMMIT_COUNT}\"/" pyproject.toml
+      - name: build-package
+        run: |
+          uv build
+      - name: publish-to-test-pypi
+        run: |
+          uv publish --publish-url https://test.pypi.org/legacy/ --trusted-publishing always

@@ -1,0 +1,19 @@
+[project]
+name = "bedrock_bio"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Liam Abbott", email = "liam@bedrock.bio" }
+]
+requires-python = ">=3.9"
+dependencies = [
+    "polars[fsspec,pandas]>=1.36.1",
+]
+
+[project.scripts]
+bedrock-bio-python-client = "bedrock_bio_python_client:main"
+
+[build-system]
+requires = ["uv_build>=0.9.8,<0.10.0"]
+build-backend = "uv_build"

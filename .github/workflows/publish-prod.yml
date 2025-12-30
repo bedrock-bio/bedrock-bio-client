@@ -1,0 +1,5 @@
+name: publish-prod
+
+on:
+  release:
+    types: [published]
