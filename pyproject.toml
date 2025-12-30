@@ -1,7 +1,7 @@
 [project]
 name = "bedrock_bio"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.0.0"
+description = "Curated datasets for computational biology workflows."
 readme = "README.md"
 authors = [
     { name = "Liam Abbott", email = "liam@bedrock.bio" }
@@ -12,7 +12,7 @@ dependencies = [
 ]
 
 [project.scripts]
-bedrock-bio-python-client = "bedrock_bio_python_client:main"
+bedrock-bio = "bedrock_bio:main"
 
 [build-system]
 requires = ["uv_build>=0.9.8,<0.10.0"]
