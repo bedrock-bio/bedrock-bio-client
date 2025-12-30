@@ -7,23 +7,23 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    environment:
+      name: testpypi
     permissions:
       id-token: write
+      contents: read
     steps:
       - name: check-out-repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: install-uv
-        uses: astral-sh/setup-uv@v4
-      - name: set-dev-version
-        run: |
-          VERSION=$(grep '^version' pyproject.toml | cut -d'"' -f2)
-          COMMIT_COUNT=$(git rev-list --count HEAD)
-          sed -i "s/^version = .*/version = \"${VERSION}.dev${COMMIT_COUNT}\"/" pyproject.toml
+        uses: astral-sh/setup-uv@v7
+      - name: install-python
+        run: uv python install
+      - name: bump-dev-version
+        run: uv version --bump dev=$(git rev-list --count HEAD)
       - name: build-package
-        run: |
-          uv build
-      - name: publish-to-test-pypi
-        run: |
-          uv publish --publish-url https://test.pypi.org/legacy/ --trusted-publishing always
+        run: uv build
+      - name: publish-package
+        run: uv publish --publish-url https://test.pypi.org/legacy/

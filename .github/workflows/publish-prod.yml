@@ -3,3 +3,23 @@ name: publish-prod
 on:
   release:
     types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: check-out-repository
+        uses: actions/checkout@v5
+      - name: install-uv
+        uses: astral-sh/setup-uv@v7
+      - name: install-python
+        run: uv python install
+      - name: build-package
+        run: uv build
+      - name: publish-package
+        run: uv publish
