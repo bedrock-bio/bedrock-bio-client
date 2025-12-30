@@ -22,7 +22,7 @@ jobs:
       - name: install-python
         run: uv python install
       - name: bump-dev-version
-        run: uv version --bump dev=$(git rev-list --count HEAD)
+        run: uv version "$(uv version --short).dev$(git rev-list --count HEAD)"
       - name: build-package
         run: uv build
       - name: publish-package
