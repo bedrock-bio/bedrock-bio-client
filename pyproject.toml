@@ -1,12 +1,12 @@
 [project]
 name = "bedrock_bio"
-version = "0.0.0"
+version = "1.0.0"
 description = "Curated datasets for computational biology workflows."
 readme = "README.md"
 authors = [
     { name = "Liam Abbott", email = "liam@bedrock.bio" }
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "polars[fsspec,pandas]>=1.36.1",
 ]
