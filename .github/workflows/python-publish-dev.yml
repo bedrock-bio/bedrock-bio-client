@@ -3,6 +3,8 @@ name: publish-dev
 on:
   push:
     branches: [main]
+    paths:
+      - 'python/**'
 
 jobs:
   publish-to-testpypi:
@@ -12,6 +14,9 @@ jobs:
     permissions:
       id-token: write
       contents: read
+    defaults:
+      run:
+        working-directory: python
     steps:
       - name: check-out-repository
         uses: actions/checkout@v5
