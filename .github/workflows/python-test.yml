@@ -10,7 +10,7 @@ concurrency:
 
 jobs:
   test:
-    name: python-test
+    name: python-test-${{ matrix.config.os }}-${{ matrix.config.python }}
     runs-on: ${{ matrix.config.os }}
     defaults:
       run:
