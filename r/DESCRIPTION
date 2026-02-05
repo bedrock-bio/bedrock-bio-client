@@ -1,0 +1,24 @@
+Package: bedrockbio
+Title: An API for querying data from the Bedrock Bio library
+Version: 1.0.0
+Authors@R: 
+    person("Liam", "Abbott", , "liam@bedrock.bio", role = c("aut", "cre"))
+Description: A simple application programming interface (API) for querying
+    curated datasets from the Bedrock Bio library. The API consists of a
+    single user-facing function, `load()`, which takes a dataset name and
+    returns a lazily-evaluated `Dataset` object (defined in the `arrow`
+    package). `dplyr` verbs (`filter`, `select`) can be used on the
+    returned `Dataset` to push down row filters and column selections to
+    the storage backend, downloading and reading into memory only the
+    requested subset of data.
+License: GPL (>= 3)
+URL: https://bedrock.bio,
+    https://github.com/bedrock-bio/bedrock-bio-client
+BugReports: https://github.com/bedrock-bio/bedrock-bio-client/issues
+Imports:
+    arrow
+Suggests:
+    dplyr
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
