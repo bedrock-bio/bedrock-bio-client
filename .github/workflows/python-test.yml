@@ -1,0 +1,39 @@
+name: python-test
+
+on:
+  pull_request:
+    branches: ["main"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: python-test-${{ matrix.config.os }}-${{ matrix.config.python }}
+    runs-on: ${{ matrix.config.os }}
+    defaults:
+      run:
+        working-directory: python
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {os: macos-latest,   python: "3.14"}
+          - {os: windows-latest, python: "3.14"}
+          - {os: ubuntu-latest,  python: "3.14"}
+          - {os: ubuntu-latest,  python: "3.13"}
+          - {os: ubuntu-latest,  python: "3.12"}
+          - {os: ubuntu-latest,  python: "3.11"}
+          - {os: ubuntu-latest,  python: "3.10"}
+    steps:
+      - name: check-out-repository
+        uses: actions/checkout@v5
+      - name: install-uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: ${{ matrix.config.python }}
+          working-directory: python
+          enable-cache: true
+      - name: run-tests
+        run: uv run pytest tests/

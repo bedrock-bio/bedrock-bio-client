@@ -1,0 +1,25 @@
+name: python-lint
+
+on:
+  push:
+  pull_request:
+    branches: ["main"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: python-lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: check-out-repository
+        uses: actions/checkout@v5
+      - uses: astral-sh/ruff-action@v3
+        with:
+          src: "./python"
+      - uses: astral-sh/ruff-action@v3
+        with:
+          src: "./python"
+          args: "format --check --diff"
