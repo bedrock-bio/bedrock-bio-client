@@ -13,15 +13,13 @@ jobs:
   lint:
     name: python-lint
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: python
     steps:
       - name: check-out-repository
         uses: actions/checkout@v5
-      - name: install-uv
-        uses: astral-sh/setup-uv@v7
-      - name: lint-with-ruff
-        run: uv run ruff check .
-      - name: check-format-with-ruff
-        run: uv run ruff format --diff .
+      - uses: astral-sh/ruff-action@v3
+        with:
+          src: "./python"
+      - uses: astral-sh/ruff-action@v3
+        with:
+          src: "./python"
+          args: "format --check --diff"
