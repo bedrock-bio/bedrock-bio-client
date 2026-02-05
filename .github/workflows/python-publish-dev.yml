@@ -1,13 +1,11 @@
-name: publish-dev
+name: python-publish-dev
 
 on:
   push:
-    branches: [main]
-    paths:
-      - 'python/**'
+    branches: ["main"]
 
 jobs:
-  publish-to-testpypi:
+  publish-dev:
     runs-on: ubuntu-latest
     environment:
       name: testpypi
@@ -24,8 +22,8 @@ jobs:
           fetch-depth: 0
       - name: install-uv
         uses: astral-sh/setup-uv@v7
-      - name: install-python
-        run: uv python install
+        with:
+          working-directory: python
       - name: bump-dev-version
         run: uv version "$(uv version --short).dev$(git rev-list --count HEAD)"
       - name: build-package

@@ -1,0 +1,40 @@
+name: r-lint
+
+on:
+  push:
+  pull_request:
+    branches: ["main"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: read-all
+
+env:
+  GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  lint:
+    name: r-lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: r
+    steps:
+      - name: check-out-repository
+        uses: actions/checkout@v5
+      - name: install-r
+        uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+      - name: install-r-dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          working-directory: r
+          extra-packages: any::lintr
+      - name: lint-r-package
+        run: lintr::lint_package()
+        shell: Rscript {0}
+        env:
+          LINTR_ERROR_ON_LINT: true

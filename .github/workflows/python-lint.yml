@@ -1,0 +1,27 @@
+name: python-lint
+
+on:
+  push:
+  pull_request:
+    branches: ["main"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: python-lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python
+    steps:
+      - name: check-out-repository
+        uses: actions/checkout@v5
+      - name: install-uv
+        uses: astral-sh/setup-uv@v7
+      - name: lint-with-ruff
+        run: uv run ruff check .
+      - name: check-format-with-ruff
+        run: uv run ruff format --diff .
