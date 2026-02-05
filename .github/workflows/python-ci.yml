@@ -1,4 +1,4 @@
-name: lint-test-build
+name: python-lint-test-build
 
 on:
   pull_request:
