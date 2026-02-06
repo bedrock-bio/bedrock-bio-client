@@ -4,9 +4,7 @@
 
 ## Notes for CRAN
 
-This package installs the DuckDB 'httpfs' extension on first load
-to enable reading parquet files over HTTPS. This is required for
-core functionality and only occurs once per user installation.
+There are no references related to any functions implemented in this package.
 
 ## Test environments
 

@@ -1,7 +1,7 @@
 #' Lazily read a dataset from the Bedrock Bio library
 #'
 #' @param name Dataset name (e.g., "ukb_ppp/pqtls")
-#' @return A lazy dplyr table
+#' @return A lazy tibble
 #'
 #' @examples
 #' \dontrun{
@@ -27,23 +27,23 @@
 #' @export
 load_dataset <- function(name) {
   base_url <- "https://data.bedrock.bio"
-  manifest_url <- paste0(base_url, "/manifests/", name, ".json")
+  manifest_url <- paste0(base_url, "/", name, "/manifest.json")
 
-  files <- jsonlite::fromJSON(manifest_url)$files
-  urls <- paste0(base_url, "/", name, "/", files)
-
-  sink(nullfile())
-  conn <- DBI::dbConnect(duckdb::duckdb())
-  sink()
-
-  DBI::dbExecute(conn, "LOAD httpfs")
-  DBI::dbExecute(conn, "SET enable_progress_bar = false")
-
-  query <- paste0(
-    "SELECT * FROM read_parquet([",
-    paste0("'", urls, "'", collapse = ", "),
-    "], hive_partitioning=true)"
+  error_msg <- paste0(
+    "Unable to access manifest URL '",
+    manifest_url,
+    "' for dataset '",
+    name,
+    "'. Check internet connection and try again."
   )
 
-  dplyr::tbl(conn, dplyr::sql(query))
+  files <- tryCatch(
+    jsonlite::fromJSON(manifest_url)$files,
+    error = function(e) {
+      stop(error_msg, call. = FALSE)
+    }
+  )
+
+  urls <- paste0(base_url, "/", files)
+  tidypolars::scan_parquet_polars(urls, hive_partitioning = TRUE)
 }

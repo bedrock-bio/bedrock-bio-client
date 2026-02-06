@@ -1,33 +1,56 @@
 
 # bedrockbio
 
-<!-- badges: start -->
-<!-- badges: end -->
+Open-Access Computational Biology Datasets
 
-A simple application programming interface (API) for querying
-curated datasets from the Bedrock Bio library. The API consists of a
-single user-facing function, `load_dataset()`, which takes a dataset name 
-and returns a lazily-evaluated data frame object. `dplyr` verbs (`filter`, 
-`select`) can be used on the returned data frame to push down row filters 
-and column selections to the storage backend, downloading and reading into 
-memory only the requested subset of data.
+## Description
+
+Efficiently access a curated library of open-access computational biology 
+datasets. Datasets support predicate pushdown and projection to the cloud 
+storage backend, enabling quick, iterative access to otherwise massive, 
+unwieldy datasets.
+
+`bedrockbio` consists of two user-facing functions:
+
+- `list_datasets()`: returns a list of available datasets
+- `load_dataset("<name>")`: takes a dataset name and returns a lazily-evaluated
+  data frame. 
+  
+`dplyr` verbs (`filter`, `select`) can be used on the data frame returned by
+`load_dataset` to push down row filters and column selections to the storage 
+backend. This means that only the requested subset of rows and columns are
+downloaded and read into memory.
 
 ## Installation
 
-You can install the development version of `bedrockbio` from [GitHub](https://github.com/) with:
+To install the latest release from CRAN:
 
-``` r
+```r
+install.packages("bedrockbio")
+```
+
+To install the current development version from GitHub:
+
+```r
 # install.packages("pak")
 pak::pak("bedrock-bio/bedrock-bio-client/r")
 ```
 
 ## Examples
 
-List datasets available in the Bedrock Bio library:
+List available datasets:
 
 ```r
 library(bedrockbio)
 list_datasets()
+```
+
+Inspect the contents of a dataset before downloading and collecting into 
+memory:
+
+```r
+library(bedrockbio)
+load_dataset("ukb_ppp/pqtls")
 ```
 
 Lazily load a dataset, filter rows, select columns, and collect the relevant
@@ -53,3 +76,7 @@ df <- load_dataset("ukb_ppp/pqtls") |>
   collect()
 ```
 
+## Dataset Requests
+
+To request the addition of a new dataset to the library, open an
+[issue on GitHub](https://github.com/bedrock-bio/bedrock-bio-client/issues).

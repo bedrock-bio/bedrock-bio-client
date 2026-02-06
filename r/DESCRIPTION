@@ -1,25 +1,23 @@
 Package: bedrockbio
-Title: An API for Querying Datasets from the Bedrock Bio Library
+Title: Open-Access Computational Biology Datasets
 Version: 1.0.0
 Authors@R: 
-    person("Liam", "Abbott", , "liam@bedrock.bio", role = c("aut", "cre"))
-Description: A simple application programming interface (API) for querying
-    curated datasets from the Bedrock Bio library. The API consists of two
-    user-facing functions -- `list_datasets()`, which returns a list of
-    available datasets, and `load_dataset()`, which takes a dataset name 
-    and returns a lazily-evaluated data frame object. `dplyr` verbs (`filter`, 
-    `select`) can be used on the returned data frame to push down row filters 
-    and column selections to the storage backend, downloading and reading into 
-    memory only the requested subset of data.
+    person(
+      "Liam", "Abbott", , "liam@bedrock.bio", role = c("aut", "cre", "cph")
+    )
+Description: Efficiently access a curated library of open-access computational 
+    biology datasets. Datasets support predicate pushdown and projection to the
+    cloud storage backend, enabling quick, iterative access to otherwise
+    massive, unwieldy datasets.
+Language: en-US
 License: GPL (>= 3)
 URL: https://bedrock.bio,
     https://github.com/bedrock-bio/bedrock-bio-client
 BugReports: https://github.com/bedrock-bio/bedrock-bio-client/issues
 Imports:
-    DBI,
-    dplyr,
-    duckdb,
-    jsonlite
+    jsonlite,
+    tidypolars
+Additional_repositories: https://r-multiverse.r-universe.dev
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
