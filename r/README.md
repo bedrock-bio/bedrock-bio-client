@@ -18,18 +18,19 @@ unwieldy datasets.
   
 `dplyr` verbs (`filter`, `select`) can be used on the data frame returned by
 `load_dataset` to push down row filters and column selections to the storage 
-backend. This means that only the requested subset of rows and columns are
+backend. This means that only a subset of rows and columns need to be actually
 downloaded and read into memory.
 
 ## Installation
 
-To install the latest release from CRAN:
+To install the latest release from [R-multiverse](https://r-multiverse.org):
 
 ```r
-install.packages("bedrockbio")
+install.packages("bedrockbio", repos=c("https://community.r-multiverseorg"))
 ```
 
-To install the current development version from GitHub:
+To install the current development version from 
+[GitHub](https://github.com/bedrock-bio/bedrock-bio-client/r):
 
 ```r
 # install.packages("pak")
@@ -38,10 +39,16 @@ pak::pak("bedrock-bio/bedrock-bio-client/r")
 
 ## Examples
 
-List available datasets:
+Load the package (and `dplyr` for downstream data frame manipulation):
 
 ```r
 library(bedrockbio)
+library(dplyr)
+```
+
+List available datasets:
+
+```r
 list_datasets()
 ```
 
@@ -49,17 +56,15 @@ Inspect the contents of a dataset before downloading and collecting into
 memory:
 
 ```r
-library(bedrockbio)
-load_dataset("ukb_ppp/pqtls")
+load_dataset("ukb_ppp/pqtls") |>
+  head() |>
+  collect()
 ```
 
 Lazily load a dataset, filter rows, select columns, and collect the relevant
-subset of the dataset into an in-memory data frame:
+subset into an in-memory data frame:
 
 ``` r
-library(bedrockbio)
-library(dplyr)
- 
 df <- load_dataset("ukb_ppp/pqtls") |>
   filter(
     ancestry == "EUR", 
