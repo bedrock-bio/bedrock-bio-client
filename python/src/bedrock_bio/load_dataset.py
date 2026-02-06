@@ -28,6 +28,9 @@ def load_dataset(name: str) -> pl.LazyFrame:
     >>> # load into lazy data frame
     >>> lf = bb.load_dataset('ukb_ppp/pqtls')
     >>>
+    >>> # inspect available columns
+    >>> print(lf.collect_schema())
+    >>>
     >>> # filter rows, select columns, collect as data frame
     >>> df = lf \\
     ...     .filter(

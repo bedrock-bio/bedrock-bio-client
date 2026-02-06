@@ -64,7 +64,7 @@ load_dataset("ukb_ppp/pqtls") |>
 Lazily load a dataset, filter rows, select columns, and collect the relevant
 subset into an in-memory data frame:
 
-``` r
+```r
 df <- load_dataset("ukb_ppp/pqtls") |>
   filter(
     ancestry == "EUR", 
