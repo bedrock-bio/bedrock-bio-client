@@ -10,7 +10,7 @@ load_dataset(name)
 \item{name}{Dataset name (e.g., "ukb_ppp/pqtls")}
 }
 \value{
-A lazy dplyr table
+A lazy tibble
 }
 \description{
 Lazily read a dataset from the Bedrock Bio library
@@ -22,18 +22,18 @@ library(dplyr)
 
 df <- load_dataset("ukb_ppp/pqtls") |>
   filter(
-    ancestry == "EUR", 
+    ancestry == "EUR",
     protein == "A0FGR8"
-   ) |>
+  ) |>
   select(
-    chromosome, 
-    position, 
-    effect_allele, 
-    other_allele, 
-    beta, 
+    chromosome,
+    position,
+    effect_allele,
+    other_allele,
+    beta,
     neg_log_10_p_value
-   ) |>
-   collect()
+  ) |>
+  collect()
 }
 
 }

@@ -22,13 +22,11 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {os: macos-latest,   r: 'release'}
-          - {os: windows-latest, r: 'release'}
-          - {os: ubuntu-latest,  r: 'release'}
-          - {os: ubuntu-latest,  r: 'oldrel-1'}
-          - {os: ubuntu-latest,  r: 'oldrel-2'}
-          - {os: ubuntu-latest,  r: 'oldrel-3'}
-          - {os: ubuntu-latest,  r: 'oldrel-4'}
+          - {os: macos-latest,   r: '4.5'}
+          - {os: windows-latest, r: '4.5'}
+          - {os: ubuntu-latest,  r: '4.5'}
+          - {os: ubuntu-latest,  r: '4.4'}
+          - {os: ubuntu-latest,  r: '4.3'}
     steps:
       - name: check-out-repository
         uses: actions/checkout@v5
@@ -37,6 +35,7 @@ jobs:
         with:
           r-version: ${{ matrix.config.r }}
           use-public-rspm: true
+          extra-repositories: https://r-multiverse.r-universe.dev
       - name: install-r-dependencies
         uses: r-lib/actions/setup-r-dependencies@v2
         with:
