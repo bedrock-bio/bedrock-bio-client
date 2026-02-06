@@ -37,6 +37,7 @@ jobs:
         with:
           r-version: ${{ matrix.config.r }}
           use-public-rspm: true
+          extra-repositories: https://r-multiverse.r-universe.dev
       - name: install-r-dependencies
         uses: r-lib/actions/setup-r-dependencies@v2
         with:
