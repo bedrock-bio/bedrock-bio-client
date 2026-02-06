@@ -1,6 +1,6 @@
 [project]
 name = "bedrock_bio"
-version = "1.0.0"
+version = "1.1.0"
 description = "Open-Access Computational Biology Datasets"
 readme = "README.md"
 authors = [
