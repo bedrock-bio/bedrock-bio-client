@@ -1,5 +1,5 @@
 
-# bedrockbio
+# bedrock-bio
 
 Open-Access Computational Biology Datasets
 
@@ -87,4 +87,4 @@ df = lf \
 ## Dataset Requests
 
 To request the addition of a new dataset to the library, open an
-[issue on GitHub](https://github.com/bedrock-bio/bedrock-bio-client/issues).
+[issue](https://github.com/bedrock-bio/bedrock-bio-client/issues).
