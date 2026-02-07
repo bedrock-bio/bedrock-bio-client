@@ -85,4 +85,4 @@ df <- load_dataset("ukb_ppp/pqtls") |>
 ## Dataset Requests
 
 To request the addition of a new dataset to the library, open an
-[issue on GitHub](https://github.com/bedrock-bio/bedrock-bio-client/issues).
+[issue](https://github.com/bedrock-bio/bedrock-bio-client/issues).
