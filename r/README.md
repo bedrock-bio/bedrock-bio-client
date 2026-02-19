@@ -23,11 +23,11 @@ downloaded and read into memory.
 
 ## Installation
 
-To install the latest release from [R-multiverse](https://r-multiverse.org):
+To install the latest release from [R-multiverse](https://community.r-multiverse.org/bedrockbio):
 
 ```r
-install.packages('bedrockbio', repos = c('https://community.r-multiverse.org', 
-'https://cloud.r-project.org'))
+Sys.setenv(NOT_CRAN = 'true');
+install.packages('bedrockbio', repos = c('https://community.r-multiverse.org', 'https://cloud.r-project.org'))
 ```
 
 To install the current development version from 
