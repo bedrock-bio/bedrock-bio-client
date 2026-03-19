@@ -8,6 +8,6 @@
 #'
 #' @export
 list_datasets <- function() {
-  catalog <- bedrockbio:::get_catalog()
+  catalog <- get_catalog()
   names(catalog)
 }

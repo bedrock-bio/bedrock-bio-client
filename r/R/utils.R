@@ -1,4 +1,7 @@
-#' @noRd
+#' Fetch the dataset catalog
+#' @returns A named list mapping dataset names to metadata URLs.
+#' @keywords internal
+#' @export
 get_catalog <- function() {
   if (!is.null(pkg$catalog)) {
     return(pkg$catalog)
@@ -17,7 +20,10 @@ get_catalog <- function() {
   pkg$catalog
 }
 
-#' @noRd
+#' Fetch R2 credentials
+#' @returns A named list of credential values.
+#' @keywords internal
+#' @export
 get_credentials <- function() {
   if (!is.null(pkg$credentials)) {
     return(pkg$credentials)
@@ -46,7 +52,10 @@ get_credentials <- function() {
   pkg$credentials
 }
 
-#' @noRd
+#' Get a DuckDB connection configured for R2
+#' @returns A DuckDB connection object.
+#' @keywords internal
+#' @export
 get_connection <- function() {
   if (!is.null(pkg$conn)) {
     return(pkg$conn)
@@ -71,7 +80,10 @@ get_connection <- function() {
   pkg$conn
 }
 
-#' @noRd
+#' Check if a connection can be established
+#' @returns `TRUE` if a connection is available, `FALSE` otherwise.
+#' @keywords internal
+#' @export
 has_connection <- function() {
   tryCatch(
     {
