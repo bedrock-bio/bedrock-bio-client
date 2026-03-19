@@ -2,3 +2,4 @@
 
 export(list_datasets)
 export(load_dataset)
+importFrom(dbplyr,dbplyr_edition)

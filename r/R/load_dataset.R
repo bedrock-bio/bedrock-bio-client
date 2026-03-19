@@ -1,17 +1,16 @@
-#' Lazily read a dataset from the Bedrock Bio library
+#' Lazily query a dataset
 #'
-#' @param name Dataset name (e.g., "ukb_ppp/pqtls")
-#' @return A lazy tibble
+#' @param name Dataset identifier (e.g., "ukb_ppp.pqtls")
+#' @returns A lazy `tbl` backed by DuckDB, compatible with dplyr verbs.
 #'
-#' @examples
-#' \dontrun{
+#' @examplesIf bedrockbio:::has_connection()
 #' library(bedrockbio)
 #' library(dplyr)
 #'
-#' df <- load_dataset("ukb_ppp/pqtls") |>
+#' df <- load_dataset("ukb_ppp.pqtls") |>
 #'   filter(
 #'     ancestry == "EUR",
-#'     protein == "A0FGR8"
+#'     protein_id == "A0FGR8"
 #'   ) |>
 #'   select(
 #'     chromosome,
@@ -22,28 +21,22 @@
 #'     neg_log_10_p_value
 #'   ) |>
 #'   collect()
-#' }
 #'
 #' @export
 load_dataset <- function(name) {
-  base_url <- "https://data.bedrock.bio"
-  manifest_url <- paste0(base_url, "/", name, "/manifest.json")
+  catalog <- get_catalog()
 
-  error_msg <- paste0(
-    "Unable to access manifest URL '",
-    manifest_url,
-    "' for dataset '",
-    name,
-    "'. Check internet connection and try again."
-  )
+  if (!name %in% names(catalog)) {
+    stop(
+      "Dataset '", name, "' not found in catalog. ",
+      "See list_datasets() for available datasets.",
+      call. = FALSE
+    )
+  }
 
-  files <- tryCatch(
-    jsonlite::fromJSON(manifest_url)$files,
-    error = function(e) {
-      stop(error_msg, call. = FALSE)
-    }
-  )
+  metadata_url <- catalog[[name]]
+  query <- sprintf("SELECT * FROM iceberg_scan('%s')", metadata_url)
 
-  urls <- paste0(base_url, "/", files)
-  tidypolars::scan_parquet_polars(urls, hive_partitioning = TRUE)
+  conn <- get_connection()
+  dplyr::tbl(conn, dplyr::sql(query))
 }
