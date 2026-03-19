@@ -8,12 +8,8 @@ authors = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-    "httpx>=0.28.1",
-    "polars[fsspec]>=1.38.0",
+    "duckdb>=1.5.0",
 ]
-
-[project.scripts]
-bedrock-bio = "bedrock_bio:main"
 
 [build-system]
 requires = ["uv_build>=0.9.8,<0.10.0"]

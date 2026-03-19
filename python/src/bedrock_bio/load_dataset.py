@@ -1,67 +1,59 @@
-import httpx
-import polars as pl
+import duckdb
+from duckdb import ColumnExpression, ConstantExpression
+
+from .utils import get_catalog, get_connection
 
 
-def load_dataset(name: str) -> pl.LazyFrame:
+def load_dataset(name: str, **kwargs: object) -> duckdb.DuckDBPyRelation:
     """
-    Lazily read a dataset from the Bedrock Bio library.
+    Lazily query a dataset.
 
     Parameters
     ----------
     name : str
-        Dataset name (e.g. 'ukb_ppp/pqtls').
+        Dataset identifier (e.g. 'ukb_ppp.pqtls').
+    **kwargs
+        Equality filters applied to the table (e.g. ancestry='EUR').
 
     Returns
     -------
-    pl.LazyFrame
-        A lazy data frame that can be filtered and collected.
+    duckdb.DuckDBPyRelation
+        A lazy relation that can be further filtered, selected, or collected.
 
     Raises
     ------
     ConnectionError
-        If the dataset manifest cannot be accessed.
+        If the catalog cannot be accessed.
+    KeyError
+        If the dataset is not found in the catalog.
 
     Examples
     --------
     >>> import bedrock_bio as bb
     >>>
-    >>> # load into lazy data frame
-    >>> lf = bb.load_dataset('ukb_ppp/pqtls')
+    >>> # load full table as a lazy relation
+    >>> rel = bb.load_dataset('ukb_ppp.pqtls')
     >>>
-    >>> # inspect available columns
-    >>> print(lf.collect_schema())
-    >>>
-    >>> # filter rows, select columns, collect as data frame
-    >>> df = lf \\
-    ...     .filter(
-    ...         pl.col('ancestry') == 'EUR',
-    ...         pl.col('protein') == 'A0FGR8'
-    ...     ) \\
-    ...     .select(
-    ...         'chromosome',
-    ...         'position',
-    ...         'effect_allele',
-    ...         'other_allele',
-    ...         'beta',
-    ...         'neg_log_10_p_value'
-    ...     ) \\
-    ...     .collect()
+    >>> # load with equality filters, then project and filter further
+    >>> rel = bb.load_dataset('ukb_ppp.pqtls', ancestry='EUR', protein_id='A0FGR8')
+    >>> rel = rel.select('chromosome, position, beta, neg_log_10_p_value')
+    >>> rel = rel.filter('neg_log_10_p_value >= 8')
+    >>> df = rel.fetchdf()
 
     """
-    base_url = "https://data.bedrock.bio"
-    manifest_url = f"{base_url}/{name}/manifest.json"
+    catalog = get_catalog()
 
-    try:
-        response = httpx.get(manifest_url)
-        response.raise_for_status()
-    except Exception:
-        raise ConnectionError(
-            f"Unable to access manifest '{manifest_url}' for dataset '{name}'. "
-            "Check internet connection and try again."
+    if name not in catalog:
+        raise KeyError(
+            f"Dataset '{name}' not found in catalog. "
+            f"See list_datasets() for available datasets."
         )
-    else:
-        files = response.json()["files"]
 
-    urls = [f"{base_url}/{file}" for file in files]
+    metadata_url = catalog[name]
+    conn = get_connection()
+    rel = conn.sql(f"SELECT * FROM iceberg_scan('{metadata_url}')")
 
-    return pl.scan_parquet(urls, hive_partitioning=True)
+    for key, value in kwargs.items():
+        rel = rel.filter(ColumnExpression(key) == ConstantExpression(value))
+
+    return rel

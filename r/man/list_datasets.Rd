@@ -7,15 +7,14 @@
 list_datasets()
 }
 \value{
-A character vector of dataset names
+A character vector of dataset identifiers
 }
 \description{
 List available datasets in the Bedrock Bio library
 }
 \examples{
-\dontrun{
+\dontshow{if (bedrockbio:::has_connection()) withAutoprint(\{ # examplesIf}
 library(bedrockbio)
 list_datasets()
-}
-
+\dontshow{\}) # examplesIf}
 }

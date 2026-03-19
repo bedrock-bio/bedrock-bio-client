@@ -23,14 +23,13 @@ downloaded and read into memory.
 
 ## Installation
 
-To install the latest release from [R-multiverse](https://community.r-multiverse.org/bedrockbio):
+Install from [CRAN](https://cran.r-project.org/package=bedrockbio):
 
 ```r
-Sys.setenv(NOT_CRAN = 'true');
-install.packages('bedrockbio', repos = c('https://community.r-multiverse.org', 'https://cloud.r-project.org'))
+install.packages("bedrockbio")
 ```
 
-To install the current development version from 
+Or install the current development version from
 [GitHub](https://github.com/bedrock-bio/bedrock-bio-client/r):
 
 ```r
@@ -57,7 +56,7 @@ Inspect the contents of a dataset before downloading and collecting into
 memory:
 
 ```r
-load_dataset("ukb_ppp/pqtls") |>
+load_dataset("ukb_ppp.pqtls") |>
   head() |>
   collect()
 ```
@@ -66,10 +65,10 @@ Lazily load a dataset, filter rows, select columns, and collect the relevant
 subset into an in-memory data frame:
 
 ```r
-df <- load_dataset("ukb_ppp/pqtls") |>
+df <- load_dataset("ukb_ppp.pqtls") |>
   filter(
     ancestry == "EUR", 
-    protein == "A0FGR8"
+    protein_id == "A0FGR8"
   ) |>
   select(
     chromosome, 
