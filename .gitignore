@@ -1,4 +1,6 @@
+.DS_Store
 r/.Rhistory
+credentials*.json
 
 # Python-generated files
 __pycache__/

@@ -2,28 +2,28 @@
 % Please edit documentation in R/load_dataset.R
 \name{load_dataset}
 \alias{load_dataset}
-\title{Lazily read a dataset from the Bedrock Bio library}
+\title{Lazily query a dataset}
 \usage{
 load_dataset(name)
 }
 \arguments{
-\item{name}{Dataset name (e.g., "ukb_ppp/pqtls")}
+\item{name}{Dataset identifier (e.g., "ukb_ppp.pqtls")}
 }
 \value{
-A lazy tibble
+A lazy \code{tbl} backed by DuckDB, compatible with dplyr verbs.
 }
 \description{
-Lazily read a dataset from the Bedrock Bio library
+Lazily query a dataset
 }
 \examples{
-\dontrun{
+\dontshow{if (bedrockbio:::has_connection()) withAutoprint(\{ # examplesIf}
 library(bedrockbio)
 library(dplyr)
 
-df <- load_dataset("ukb_ppp/pqtls") |>
+df <- load_dataset("ukb_ppp.pqtls") |>
   filter(
     ancestry == "EUR",
-    protein == "A0FGR8"
+    protein_id == "A0FGR8"
   ) |>
   select(
     chromosome,
@@ -34,6 +34,5 @@ df <- load_dataset("ukb_ppp/pqtls") |>
     neg_log_10_p_value
   ) |>
   collect()
-}
-
+\dontshow{\}) # examplesIf}
 }
