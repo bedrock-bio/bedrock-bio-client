@@ -24,7 +24,7 @@
 #'
 #' @export
 load_dataset <- function(name) {
-  catalog <- get_catalog()
+  catalog <- bedrockbio:::get_catalog()
 
   if (!name %in% names(catalog)) {
     stop(
@@ -37,6 +37,6 @@ load_dataset <- function(name) {
   metadata_url <- catalog[[name]]
   query <- sprintf("SELECT * FROM iceberg_scan('%s')", metadata_url)
 
-  conn <- get_connection()
+  conn <- bedrockbio:::get_connection()
   dplyr::tbl(conn, dplyr::sql(query))
 }
