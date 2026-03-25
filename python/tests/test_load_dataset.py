@@ -1,38 +1,76 @@
-from unittest.mock import MagicMock, patch
-
+import duckdb
 import pytest
 
 from bedrock_bio.load_dataset import load_dataset
 
-FAKE_CATALOG = {"dataset_a": "s3://bucket/a.json"}
 
+class TestLoadDataset:
+    def test_no_dataset(self):
+        with pytest.raises(ValueError, match="not found in catalog"):
+            load_dataset("not_a_dataset")
 
-def test_unknown_dataset_raises_key_error():
-    with patch("bedrock_bio.load_dataset.get_catalog", return_value=FAKE_CATALOG):
-        with pytest.raises(KeyError, match="not_real"):
-            load_dataset("not_real")
+    def test_missing_filters(self):
+        with pytest.raises(ValueError, match="Missing required filters"):
+            load_dataset("dbsnp.vcf")
 
+    def test_unknown_filter(self):
+        with pytest.raises(ValueError, match="Unknown filters"):
+            load_dataset(
+                "dbsnp.vcf",
+                build="b157",
+                assembly="GRCh38",
+                chromosome="22",
+                fake="value",
+            )
 
-def test_passes_catalog_url_to_iceberg_scan():
-    mock_conn = MagicMock()
-    with (
-        patch("bedrock_bio.load_dataset.get_catalog", return_value=FAKE_CATALOG),
-        patch("bedrock_bio.load_dataset.get_connection", return_value=mock_conn),
-    ):
-        load_dataset("dataset_a")
-    mock_conn.sql.assert_called_once_with(
-        "SELECT * FROM iceberg_scan('s3://bucket/a.json')"
-    )
+    def test_invalid_allowed_value(self):
+        with pytest.raises(ValueError, match="Invalid value"):
+            load_dataset("dbsnp.vcf", build="b157", assembly="INVALID", chromosome="22")
 
+    def test_coerces_int_to_string(self):
+        result = load_dataset(
+            "dbsnp.vcf", build="b157", assembly="GRCh38", chromosome=22
+        )
+        assert isinstance(result, duckdb.DuckDBPyRelation)
 
-def test_kwargs_apply_equality_filters():
-    mock_rel = MagicMock()
-    mock_conn = MagicMock()
-    mock_conn.sql.return_value = mock_rel
-    mock_rel.filter.return_value = mock_rel
-    with (
-        patch("bedrock_bio.load_dataset.get_catalog", return_value=FAKE_CATALOG),
-        patch("bedrock_bio.load_dataset.get_connection", return_value=mock_conn),
-    ):
-        load_dataset("dataset_a", ancestry="EUR")
-    mock_rel.filter.assert_called_once()
+    def test_coerces_case(self):
+        result = load_dataset(
+            "dbsnp.vcf", build="b157", assembly="grch38", chromosome="22"
+        )
+        assert isinstance(result, duckdb.DuckDBPyRelation)
+
+    def test_no_filters_for_dummy_partition(self):
+        result = load_dataset("ukb_ppp.assays")
+        assert isinstance(result, duckdb.DuckDBPyRelation)
+
+    def test_return_type(self):
+        result = load_dataset(
+            "dbsnp.vcf", build="b157", assembly="GRCh38", chromosome="22"
+        )
+        assert isinstance(result, duckdb.DuckDBPyRelation)
+
+    def test_collect(self):
+        result = load_dataset(
+            "dbsnp.vcf", build="b157", assembly="GRCh38", chromosome="22"
+        )
+        rows = result.limit(5).fetchall()
+        assert len(rows) == 5
+
+    def test_select(self):
+        result = (
+            load_dataset("dbsnp.vcf", build="b157", assembly="GRCh38", chromosome="22")
+            .select("chromosome", "position")
+            .limit(5)
+        )
+        assert result.columns == ["chromosome", "position"]
+
+    def test_filter(self):
+        result = load_dataset(
+            "dbsnp.vcf", build="b157", assembly="GRCh38", chromosome="22"
+        ).limit(5)
+        rows = result.fetchall()
+        assert len(rows) == 5
+
+        chromosome_idx = result.columns.index("chromosome")
+        unique_values = {row[chromosome_idx] for row in rows}
+        assert unique_values == {"22"}

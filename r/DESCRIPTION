@@ -19,14 +19,14 @@ URL: https://bedrock.bio,
 BugReports: https://github.com/bedrock-bio/bedrock-bio-client/issues
 Depends: R (>= 4.3)
 Imports:
+    curl,
     DBI,
     dbplyr,
     dplyr,
     duckdb,
     jsonlite
 Suggests:
-    testthat (>= 3.0.0),
-    withr
+    testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

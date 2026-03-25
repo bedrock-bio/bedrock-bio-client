@@ -1,4 +1,4 @@
-from .utils import get_catalog
+from .config import config
 
 
 def list_datasets() -> list[str]:
@@ -22,5 +22,5 @@ def list_datasets() -> list[str]:
     ['ukb_ppp.pqtls', ...]
 
     """
-    catalog = get_catalog()
+    catalog = config.get_catalog()
     return list(catalog.keys())

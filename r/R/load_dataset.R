@@ -1,17 +1,20 @@
 #' Lazily query a dataset
 #'
 #' @param name Dataset identifier (e.g., "ukb_ppp.pqtls")
+#' @param ... Required partition filters
+#'   (e.g., ancestry = "EUR", protein_id = "A0FGR8")
 #' @returns A lazy `tbl` backed by DuckDB, compatible with dplyr verbs.
 #'
 #' @examplesIf bedrockbio:::has_connection()
 #' library(bedrockbio)
 #' library(dplyr)
 #'
-#' df <- load_dataset("ukb_ppp.pqtls") |>
-#'   filter(
-#'     ancestry == "EUR",
-#'     protein_id == "A0FGR8"
-#'   ) |>
+#' df <- load_dataset(
+#'   "ukb_ppp.pqtls",
+#'   ancestry = "EUR",
+#'   protein_id = "A0FGR8",
+#'   panel = "Inflammation"
+#' ) |>
 #'   select(
 #'     chromosome,
 #'     position,
@@ -23,7 +26,7 @@
 #'   collect()
 #'
 #' @export
-load_dataset <- function(name) {
+load_dataset <- function(name, ...) {
   catalog <- get_catalog()
 
   if (!name %in% names(catalog)) {
@@ -34,8 +37,62 @@ load_dataset <- function(name) {
     )
   }
 
-  metadata_url <- catalog[[name]]
-  query <- sprintf("SELECT * FROM iceberg_scan('%s')", metadata_url)
+  entry <- catalog[[name]]
+  filters <- list(...)
+  required <- entry$required_filters
+  allowed_values <- entry$allowed_values
+
+  missing <- setdiff(required, names(filters))
+  if (length(missing) > 0) {
+    stop(
+      "Missing required filters for '", name, "': ",
+      paste(missing, collapse = ", "), ". ",
+      "Required: ", paste(required, collapse = ", "), ".",
+      call. = FALSE
+    )
+  }
+
+  unknown <- setdiff(names(filters), required)
+  if (length(unknown) > 0) {
+    stop(
+      "Unknown filters for '", name, "': ",
+      paste(unknown, collapse = ", "), ". ",
+      "Valid filters: ", paste(required, collapse = ", "), ".",
+      call. = FALSE
+    )
+  }
+
+  for (col in names(filters)) {
+    val <- trimws(as.character(filters[[col]]))
+    if (col %in% names(allowed_values)) {
+      allowed <- allowed_values[[col]]
+      if (val %in% allowed) {
+        filters[[col]] <- val
+      } else {
+        match_idx <- match(tolower(val), tolower(allowed))
+        if (!is.na(match_idx)) {
+          filters[[col]] <- allowed[match_idx]
+        } else {
+          stop(
+            "Invalid value '", val, "' for filter '", col, "'. ",
+            "Allowed: ", paste(allowed, collapse = ", "), ".",
+            call. = FALSE
+          )
+        }
+      }
+    } else {
+      filters[[col]] <- val
+    }
+  }
+
+  where_parts <- vapply(names(filters), function(col) {
+    sprintf("%s = '%s'", col, gsub("'", "''", filters[[col]]))
+  }, character(1))
+
+  query <- sprintf("SELECT * FROM iceberg_scan('%s')", entry$metadata_json)
+  if (length(where_parts) > 0) {
+    query <- paste(query, "WHERE", paste(where_parts, collapse = " AND "))
+  }
 
   conn <- get_connection()
   dplyr::tbl(conn, dplyr::sql(query))

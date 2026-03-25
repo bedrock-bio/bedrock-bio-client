@@ -12,6 +12,7 @@ jobs:
   test:
     name: python-test-${{ matrix.config.os }}-${{ matrix.config.python }}
     runs-on: ${{ matrix.config.os }}
+    environment: dev
     defaults:
       run:
         working-directory: python
@@ -25,7 +26,6 @@ jobs:
           - {os: ubuntu-latest,  python: "3.13"}
           - {os: ubuntu-latest,  python: "3.12"}
           - {os: ubuntu-latest,  python: "3.11"}
-          - {os: ubuntu-latest,  python: "3.10"}
     steps:
       - name: check-out-repository
         uses: actions/checkout@v5

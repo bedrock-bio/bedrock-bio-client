@@ -4,10 +4,13 @@
 \alias{load_dataset}
 \title{Lazily query a dataset}
 \usage{
-load_dataset(name)
+load_dataset(name, ...)
 }
 \arguments{
 \item{name}{Dataset identifier (e.g., "ukb_ppp.pqtls")}
+
+\item{...}{Required partition filters
+(e.g., ancestry = "EUR", protein_id = "A0FGR8")}
 }
 \value{
 A lazy \code{tbl} backed by DuckDB, compatible with dplyr verbs.
@@ -20,11 +23,12 @@ Lazily query a dataset
 library(bedrockbio)
 library(dplyr)
 
-df <- load_dataset("ukb_ppp.pqtls") |>
-  filter(
-    ancestry == "EUR",
-    protein_id == "A0FGR8"
-  ) |>
+df <- load_dataset(
+  "ukb_ppp.pqtls",
+  ancestry = "EUR",
+  protein_id = "A0FGR8",
+  panel = "Inflammation"
+) |>
   select(
     chromosome,
     position,

@@ -1,14 +1,19 @@
-#' Fetch the dataset catalog
-#' @returns A named list mapping dataset names to metadata URLs.
-#' @keywords internal
-#' @export
+fetch_json <- function(url) {
+  h <- curl::new_handle()
+  curl::handle_setheaders(h, "User-Agent" = "bedrock-bio")
+  con <- curl::curl(url, handle = h)
+  on.exit(close(con))
+  readLines(con, warn = FALSE)
+}
+
+#' @noRd
 get_catalog <- function() {
   if (!is.null(pkg$catalog)) {
     return(pkg$catalog)
   }
 
-  pkg$catalog <- tryCatch(
-    jsonlite::fromJSON(pkg$catalog_url),
+  raw <- tryCatch(
+    jsonlite::fromJSON(fetch_json(pkg$catalog_url), simplifyDataFrame = FALSE),
     error = function(e) {
       stop(
         "Unable to access catalog URL '", pkg$catalog_url, "'. ",
@@ -17,13 +22,53 @@ get_catalog <- function() {
       )
     }
   )
+
+  entries <- list()
+  for (ns in names(raw$namespaces)) {
+    tables <- raw$namespaces[[ns]]$tables
+    for (table_name in names(tables)) {
+      meta <- tables[[table_name]]
+      partition_by <- meta$partition_by %||% character(0)
+      required_filters <- partition_by[partition_by != "partition"]
+
+      allowed_values <- list()
+      if (length(required_filters) > 0 && length(meta$columns) > 0) {
+        col_names <- vapply(meta$columns, function(c) c$name, character(1))
+        for (f in required_filters) {
+          idx <- match(f, col_names)
+          if (!is.na(idx) && !is.null(meta$columns[[idx]]$allowed_values)) {
+            av <- meta$columns[[idx]]$allowed_values
+            allowed_values[[f]] <- as.character(av)
+          }
+        }
+      }
+
+      keep <- c(
+        "name", "type", "description",
+        "nullable", "allowed_values"
+      )
+      columns <- lapply(meta$columns, function(col) {
+        col[intersect(names(col), keep)]
+      })
+
+      ns_data <- raw$namespaces[[ns]]
+      entries[[paste0(ns, ".", table_name)]] <- list(
+        metadata_json = meta$metadata_json,
+        required_filters = required_filters,
+        allowed_values = allowed_values,
+        description = meta$description %||% "",
+        citation = ns_data$citation,
+        source_url = ns_data$source_url %||% "",
+        license = ns_data$license %||% "",
+        columns = columns
+      )
+    }
+  }
+  pkg$catalog <- entries
   pkg$catalog
 }
 
-#' Fetch R2 credentials
-#' @returns A named list of credential values.
-#' @keywords internal
-#' @export
+#' @noRd
 get_credentials <- function() {
   if (!is.null(pkg$credentials)) {
     return(pkg$credentials)
@@ -39,7 +84,7 @@ get_credentials <- function() {
     override_credentials
   } else {
     tryCatch(
-      jsonlite::fromJSON(pkg$credentials_url),
+      jsonlite::fromJSON(fetch_json(pkg$credentials_url)),
       error = function(e) {
         stop(
           "Unable to fetch credentials from '", pkg$credentials_url, "'. ",
@@ -52,10 +97,7 @@ get_credentials <- function() {
   pkg$credentials
 }
 
-#' Get a DuckDB connection configured for R2
-#' @returns A DuckDB connection object.
-#' @keywords internal
-#' @export
+#' @noRd
 get_connection <- function() {
   if (!is.null(pkg$conn)) {
     return(pkg$conn)
@@ -80,10 +122,7 @@ get_connection <- function() {
   pkg$conn
 }
 
-#' Check if a connection can be established
-#' @returns `TRUE` if a connection is available, `FALSE` otherwise.
-#' @keywords internal
-#' @export
+#' @noRd
 has_connection <- function() {
   tryCatch(
     {

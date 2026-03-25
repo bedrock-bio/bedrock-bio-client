@@ -1,6 +1,6 @@
 #' List available datasets in the Bedrock Bio library
 #'
-#' @return A character vector of dataset identifiers
+#' @returns A character vector of dataset identifiers
 #'
 #' @examplesIf bedrockbio:::has_connection()
 #' library(bedrockbio)
