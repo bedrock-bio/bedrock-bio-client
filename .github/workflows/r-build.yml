@@ -6,7 +6,6 @@ on:
 
 jobs:
   build:
-    if: startsWith(github.event.release.target_commitish, 'release-')
     runs-on: ubuntu-latest
     permissions:
       contents: write
