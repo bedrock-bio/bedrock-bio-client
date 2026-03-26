@@ -31,9 +31,9 @@ def load_dataset(name: str, **filters: str) -> duckdb.DuckDBPyRelation:
     --------
     >>> import bedrock_bio as bb
     >>>
-    >>> rel = bb.load_dataset('ukb_ppp.pqtls', ancestry='EUR', protein_id='A0FGR8', panel='Inflammation')
-    >>> rel = rel.select('chromosome, position, beta, neg_log_10_p_value')
-    >>> df = rel.fetchdf()
+    >>> rel = bb.load_dataset('dbsnp.vcf', build='b157', assembly='GRCh38', chromosome='22')
+    >>> rel = rel.select('rsid, position, ref_allele, alt_allele')
+    >>> df = rel.limit(5).fetchdf()
 
     """
     catalog = config.get_catalog()

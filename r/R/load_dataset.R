@@ -10,19 +10,13 @@
 #' library(dplyr)
 #'
 #' df <- load_dataset(
-#'   "ukb_ppp.pqtls",
-#'   ancestry = "EUR",
-#'   protein_id = "A0FGR8",
-#'   panel = "Inflammation"
+#'   "dbsnp.vcf",
+#'   build = "b157",
+#'   assembly = "GRCh38",
+#'   chromosome = "22"
 #' ) |>
-#'   select(
-#'     chromosome,
-#'     position,
-#'     effect_allele,
-#'     other_allele,
-#'     beta,
-#'     neg_log_10_p_value
-#'   ) |>
+#'   select(rsid, position, ref_allele, alt_allele) |>
+#'   head(5) |>
 #'   collect()
 #'
 #' @export
