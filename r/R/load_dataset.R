@@ -1,49 +1,93 @@
-#' Lazily read a dataset from the Bedrock Bio library
+#' Lazily query a dataset
 #'
-#' @param name Dataset name (e.g., "ukb_ppp/pqtls")
-#' @return A lazy tibble
+#' @param name Dataset identifier (e.g., "ukb_ppp.pqtls")
+#' @param ... Required partition filters
+#'   (e.g., ancestry = "EUR", protein_id = "A0FGR8")
+#' @returns A lazy `tbl` backed by DuckDB, compatible with dplyr verbs.
 #'
-#' @examples
-#' \dontrun{
+#' @examplesIf bedrockbio:::has_connection()
 #' library(bedrockbio)
 #' library(dplyr)
 #'
-#' df <- load_dataset("ukb_ppp/pqtls") |>
-#'   filter(
-#'     ancestry == "EUR",
-#'     protein == "A0FGR8"
-#'   ) |>
-#'   select(
-#'     chromosome,
-#'     position,
-#'     effect_allele,
-#'     other_allele,
-#'     beta,
-#'     neg_log_10_p_value
-#'   ) |>
+#' df <- load_dataset(
+#'   "dbsnp.vcf",
+#'   build = "b157",
+#'   assembly = "GRCh38",
+#'   chromosome = "22"
+#' ) |>
+#'   select(rsid, position, ref_allele, alt_allele) |>
+#'   head(5) |>
 #'   collect()
-#' }
 #'
 #' @export
-load_dataset <- function(name) {
-  base_url <- "https://data.bedrock.bio"
-  manifest_url <- paste0(base_url, "/", name, "/manifest.json")
+load_dataset <- function(name, ...) {
+  catalog <- get_catalog()
 
-  error_msg <- paste0(
-    "Unable to access manifest URL '",
-    manifest_url,
-    "' for dataset '",
-    name,
-    "'. Check internet connection and try again."
-  )
+  if (!name %in% names(catalog)) {
+    stop(
+      "Dataset '", name, "' not found in catalog. ",
+      "See list_datasets() for available datasets.",
+      call. = FALSE
+    )
+  }
 
-  files <- tryCatch(
-    jsonlite::fromJSON(manifest_url)$files,
-    error = function(e) {
-      stop(error_msg, call. = FALSE)
+  entry <- catalog[[name]]
+  filters <- list(...)
+  required <- entry$required_filters
+  allowed_values <- entry$allowed_values
+
+  missing <- setdiff(required, names(filters))
+  if (length(missing) > 0) {
+    stop(
+      "Missing required filters for '", name, "': ",
+      paste(missing, collapse = ", "), ". ",
+      "Required: ", paste(required, collapse = ", "), ".",
+      call. = FALSE
+    )
+  }
+
+  unknown <- setdiff(names(filters), required)
+  if (length(unknown) > 0) {
+    stop(
+      "Unknown filters for '", name, "': ",
+      paste(unknown, collapse = ", "), ". ",
+      "Valid filters: ", paste(required, collapse = ", "), ".",
+      call. = FALSE
+    )
+  }
+
+  for (col in names(filters)) {
+    val <- trimws(as.character(filters[[col]]))
+    if (col %in% names(allowed_values)) {
+      allowed <- allowed_values[[col]]
+      if (val %in% allowed) {
+        filters[[col]] <- val
+      } else {
+        match_idx <- match(tolower(val), tolower(allowed))
+        if (!is.na(match_idx)) {
+          filters[[col]] <- allowed[match_idx]
+        } else {
+          stop(
+            "Invalid value '", val, "' for filter '", col, "'. ",
+            "Allowed: ", paste(allowed, collapse = ", "), ".",
+            call. = FALSE
+          )
+        }
+      }
+    } else {
+      filters[[col]] <- val
     }
-  )
+  }
 
-  urls <- paste0(base_url, "/", files)
-  tidypolars::scan_parquet_polars(urls, hive_partitioning = TRUE)
+  where_parts <- vapply(names(filters), function(col) {
+    sprintf("%s = '%s'", col, gsub("'", "''", filters[[col]]))
+  }, character(1))
+
+  query <- sprintf("SELECT * FROM iceberg_scan('%s')", entry$metadata_json)
+  if (length(where_parts) > 0) {
+    query <- paste(query, "WHERE", paste(where_parts, collapse = " AND "))
+  }
+
+  conn <- get_connection()
+  dplyr::tbl(conn, dplyr::sql(query))
 }

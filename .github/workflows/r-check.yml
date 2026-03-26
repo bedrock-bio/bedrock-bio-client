@@ -10,23 +10,23 @@ concurrency:
 
 permissions: read-all
 
-env:
-  GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-  R_KEEP_PKG_SOURCE: yes
-
 jobs:
   check:
     name: r-check-${{ matrix.config.os }}-${{ matrix.config.r }}
     runs-on: ${{ matrix.config.os }}
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
     strategy:
       fail-fast: false
       matrix:
         config:
           - {os: macos-latest,   r: '4.5'}
-          - {os: windows-latest, r: '4.5'}
           - {os: ubuntu-latest,  r: '4.5'}
           - {os: ubuntu-latest,  r: '4.4'}
           - {os: ubuntu-latest,  r: '4.3'}
+          - {os: ubuntu-latest,  r: '4.2'}
+          - {os: ubuntu-latest,  r: '4.1'}
     steps:
       - name: check-out-repository
         uses: actions/checkout@v5
@@ -35,7 +35,6 @@ jobs:
         with:
           r-version: ${{ matrix.config.r }}
           use-public-rspm: true
-          extra-repositories: https://r-multiverse.r-universe.dev
       - name: install-r-dependencies
         uses: r-lib/actions/setup-r-dependencies@v2
         with:

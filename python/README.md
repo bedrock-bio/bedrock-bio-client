@@ -5,21 +5,22 @@ Open-Access Computational Biology Datasets
 
 ## Description
 
-Efficiently access a curated library of open-access computational biology 
-datasets. Datasets support predicate pushdown and projection to the cloud 
-storage backend, enabling quick, iterative access to otherwise massive, 
+Efficiently access a curated library of open-access computational biology
+datasets. Datasets support predicate pushdown and projection to the cloud
+storage backend, enabling quick, iterative access to otherwise massive,
 unwieldy datasets.
 
-`bedrock_bio` consists of two user-facing functions:
+`bedrock_bio` consists of three user-facing functions:
 
-- `list_datasets()`: returns a list of available datasets
-- `load_dataset('<name>')`: takes a dataset name and returns a lazily-evaluated
-  data frame. 
-  
-`polars` verbs (`filter`, `select`) can be used on the data frame returned by
-`load_dataset` to push down row filters and column selections to the storage 
-backend. This means that only a subset of rows and columns need to be actually
-downloaded and read into memory.
+- `list_datasets()`: returns a list of available dataset identifiers
+- `describe_dataset('<name>')`: returns metadata, citation, and column
+  definitions for a dataset
+- `load_dataset('<name>', **filters)`: takes a dataset name and required
+  partition filters, and returns a lazy DuckDB relation
+
+DuckDB methods (`filter`, `select`, `limit`) can be used on the relation
+returned by `load_dataset` to push down additional row filters and column
+selections to the storage backend.
 
 ## Installation
 
@@ -29,8 +30,8 @@ To install the latest release from [PyPI](https://pypi.org/project/bedrock_bio/)
 pip install bedrock-bio
 ```
 
-To install the current development version from 
-[GitHub](https://github.com/bedrock-bio/bedrock-bio-client/python):
+Or install the current development version from
+[GitHub](https://github.com/bedrock-bio/bedrock-bio-client):
 
 ```bash
 pip install git+https://github.com/bedrock-bio/bedrock-bio-client.git@main#subdirectory=python
@@ -38,11 +39,8 @@ pip install git+https://github.com/bedrock-bio/bedrock-bio-client.git@main#subdi
 
 ## Examples
 
-Load the package (and `polars` for downstream data frame manipulation):
-
 ```python
 import bedrock_bio as bb
-import polars as pl
 ```
 
 List available datasets:
@@ -51,37 +49,19 @@ List available datasets:
 bb.list_datasets()
 ```
 
-Lazily load a dataset:
+Describe a dataset to see its metadata, citation, and columns:
 
 ```python
-lf = bb.load_dataset('ukb_ppp/pqtls')
+bb.describe_dataset('ukb_ppp.pqtls')
 ```
 
-Inspect the contents of a dataset before downloading and collecting into 
-memory:
+Lazily load a dataset with required partition filters, select columns, and
+collect into an in-memory data frame:
 
 ```python
-print(lf.collect_schema())
-```
-
-Filter rows, select columns, and collect the relevant subset into an 
-in-memory data frame:
-
-```python
-df = lf \
-  .filter(
-    pl.col('ancestry') == 'EUR', 
-    pl.col('protein') == 'A0FGR8'
-  ) \
-  .select(
-    'chromosome', 
-    'position', 
-    'effect_allele', 
-    'other_allele', 
-    'beta', 
-    'neg_log_10_p_value'
-  ) \
-  .collect()
+df = bb.load_dataset('ukb_ppp.pqtls', ancestry='EUR', protein_id='A0FGR8', panel='Inflammation') \
+  .select('chromosome, position, effect_allele, other_allele, beta, neg_log_10_p_value') \
+  .fetchdf()
 ```
 
 ## Dataset Requests

@@ -6,7 +6,6 @@ on:
 
 jobs:
   publish-prod:
-    if: startsWith(github.event.release.target_commitish, 'release-')
     runs-on: ubuntu-latest
     environment:
       name: pypi

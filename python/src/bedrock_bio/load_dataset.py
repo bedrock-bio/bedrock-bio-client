@@ -1,67 +1,87 @@
-import httpx
-import polars as pl
+import duckdb
+
+from .config import config
 
 
-def load_dataset(name: str) -> pl.LazyFrame:
+def load_dataset(name: str, **filters: str) -> duckdb.DuckDBPyRelation:
     """
-    Lazily read a dataset from the Bedrock Bio library.
+    Lazily query a dataset.
 
     Parameters
     ----------
     name : str
-        Dataset name (e.g. 'ukb_ppp/pqtls').
+        Dataset identifier (e.g. 'ukb_ppp.pqtls').
+    **filters : str
+        Required partition filters (e.g. ancestry='EUR', protein_id='A0FGR8').
 
     Returns
     -------
-    pl.LazyFrame
-        A lazy data frame that can be filtered and collected.
+    duckdb.DuckDBPyRelation
+        A lazy relation that can be further filtered, selected, or collected.
 
     Raises
     ------
     ConnectionError
-        If the dataset manifest cannot be accessed.
+        If the catalog cannot be accessed.
+    ValueError
+        If the dataset is not found, required filters are missing,
+        unknown filters are passed, or filter values are invalid.
 
     Examples
     --------
     >>> import bedrock_bio as bb
     >>>
-    >>> # load into lazy data frame
-    >>> lf = bb.load_dataset('ukb_ppp/pqtls')
-    >>>
-    >>> # inspect available columns
-    >>> print(lf.collect_schema())
-    >>>
-    >>> # filter rows, select columns, collect as data frame
-    >>> df = lf \\
-    ...     .filter(
-    ...         pl.col('ancestry') == 'EUR',
-    ...         pl.col('protein') == 'A0FGR8'
-    ...     ) \\
-    ...     .select(
-    ...         'chromosome',
-    ...         'position',
-    ...         'effect_allele',
-    ...         'other_allele',
-    ...         'beta',
-    ...         'neg_log_10_p_value'
-    ...     ) \\
-    ...     .collect()
+    >>> rel = bb.load_dataset('dbsnp.vcf', build='b157', assembly='GRCh38', chromosome='22')
+    >>> rel = rel.select('rsid, position, ref_allele, alt_allele')
+    >>> df = rel.limit(5).fetchdf()
 
     """
-    base_url = "https://data.bedrock.bio"
-    manifest_url = f"{base_url}/{name}/manifest.json"
+    catalog = config.get_catalog()
 
-    try:
-        response = httpx.get(manifest_url)
-        response.raise_for_status()
-    except Exception:
-        raise ConnectionError(
-            f"Unable to access manifest '{manifest_url}' for dataset '{name}'. "
-            "Check internet connection and try again."
+    if name not in catalog:
+        raise ValueError(
+            f"Dataset '{name}' not found in catalog. "
+            f"See list_datasets() for available datasets."
         )
-    else:
-        files = response.json()["files"]
 
-    urls = [f"{base_url}/{file}" for file in files]
+    entry = catalog[name]
+    required = entry["required_filters"]
+    allowed_values = entry["allowed_values"]
 
-    return pl.scan_parquet(urls, hive_partitioning=True)
+    missing = [f for f in required if f not in filters]
+    if missing:
+        raise ValueError(
+            f"Missing required filters for '{name}': {', '.join(missing)}. "
+            f"Required: {', '.join(required)}."
+        )
+
+    unknown = [f for f in filters if f not in required]
+    if unknown:
+        raise ValueError(
+            f"Unknown filters for '{name}': {', '.join(unknown)}. "
+            f"Valid filters: {', '.join(required)}."
+        )
+
+    coerced = {}
+    for col, val in filters.items():
+        val = str(val).strip()
+        if col in allowed_values:
+            allowed = allowed_values[col]
+            if val not in allowed:
+                lookup = {v.lower(): v for v in allowed}
+                val = lookup.get(val.lower())
+                if not val:
+                    raise ValueError(
+                        f"Invalid value '{str(filters[col]).strip()}' for filter '{col}'. "
+                        f"Allowed: {', '.join(allowed)}."
+                    )
+        coerced[col] = val
+
+    conn = config.get_connection()
+    rel = conn.sql(f"SELECT * FROM iceberg_scan('{entry['metadata_json']}')")
+
+    for col, val in coerced.items():
+        safe_val = val.replace("'", "''")
+        rel = rel.filter(f"{col} = '{safe_val}'")
+
+    return rel

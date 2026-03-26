@@ -1,4 +1,4 @@
-import httpx
+from .config import config
 
 
 def list_datasets() -> list[str]:
@@ -8,29 +8,19 @@ def list_datasets() -> list[str]:
     Returns
     -------
     list[str]
-        A list of dataset names.
+        A list of dataset identifiers (e.g. 'ukb_ppp.pqtls').
 
     Raises
     ------
     ConnectionError
-        If the catalog 'https://data.bedrock.bio/catalog.json' cannot be accessed.
+        If the catalog cannot be accessed.
 
     Examples
     --------
     >>> import bedrock_bio as bb
     >>> bb.list_datasets()
-    ['ukb_ppp/pqtls', ...]
+    ['ukb_ppp.pqtls', ...]
 
     """
-    catalog_url = "https://data.bedrock.bio/catalog.json"
-
-    try:
-        response = httpx.get(catalog_url)
-        response.raise_for_status()
-    except Exception:
-        raise ConnectionError(
-            f"Unable to access catalog URL '{catalog_url}'. "
-            "Check internet connection and try again."
-        )
-    else:
-        return response.json()["datasets"]
+    catalog = config.get_catalog()
+    return list(catalog.keys())
