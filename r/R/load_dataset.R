@@ -79,8 +79,11 @@ load_dataset <- function(name, ...) {
     }
   }
 
+  conn <- get_connection()
+
   where_parts <- vapply(names(filters), function(col) {
-    sprintf("%s = '%s'", col, gsub("'", "''", filters[[col]]))
+    quoted <- DBI::dbQuoteString(conn, filters[[col]])
+    sprintf("%s = %s", col, quoted)
   }, character(1))
 
   query <- sprintf("SELECT * FROM iceberg_scan('%s')", entry$metadata_json)
@@ -88,6 +91,5 @@ load_dataset <- function(name, ...) {
     query <- paste(query, "WHERE", paste(where_parts, collapse = " AND "))
   }
 
-  conn <- get_connection()
   dplyr::tbl(conn, dplyr::sql(query))
 }
