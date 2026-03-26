@@ -1,4 +1,4 @@
-# bedrockbio 1.2.0
+# bedrockbio 1.2.1
 
 * Initial CRAN submission.
 * `list_datasets()`: list available datasets.
