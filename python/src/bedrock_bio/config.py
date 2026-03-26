@@ -103,6 +103,8 @@ class Config:
 
         credentials = self.get_credentials()
         self.conn = duckdb.connect()
+        self.conn.sql("INSTALL httpfs")
+        self.conn.sql("INSTALL iceberg")
         self.conn.sql(f"""
             CREATE SECRET (
                 TYPE s3,

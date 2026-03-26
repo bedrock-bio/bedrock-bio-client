@@ -105,6 +105,8 @@ get_connection <- function() {
 
   credentials <- get_credentials()
   pkg$conn <- DBI::dbConnect(duckdb::duckdb())
+  DBI::dbExecute(pkg$conn, "INSTALL httpfs")
+  DBI::dbExecute(pkg$conn, "INSTALL iceberg")
 
   DBI::dbExecute(pkg$conn, sprintf(
     "CREATE SECRET (
