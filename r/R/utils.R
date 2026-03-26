@@ -28,7 +28,8 @@ get_catalog <- function() {
     tables <- raw$namespaces[[ns]]$tables
     for (table_name in names(tables)) {
       meta <- tables[[table_name]]
-      partition_by <- meta$partition_by %||% character(0)
+      partition_by <- meta$partition_by
+      if (is.null(partition_by)) partition_by <- character(0)
       required_filters <- partition_by[partition_by != "partition"]
 
       allowed_values <- list()
@@ -56,10 +57,10 @@ get_catalog <- function() {
         metadata_json = meta$metadata_json,
         required_filters = required_filters,
         allowed_values = allowed_values,
-        description = meta$description %||% "",
+        description = meta$description,
         citation = ns_data$citation,
-        source_url = ns_data$source_url %||% "",
-        license = ns_data$license %||% "",
+        source_url = ns_data$source_url,
+        license = ns_data$license,
         columns = columns
       )
     }
