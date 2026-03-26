@@ -44,6 +44,7 @@ test_that("errors on invalid allowed value", {
 })
 
 test_that("coerces int to string", {
+
   result <- load_dataset(
     "dbsnp.vcf",
     build = "b157",
@@ -54,6 +55,7 @@ test_that("coerces int to string", {
 })
 
 test_that("coerces case", {
+
   result <- load_dataset(
     "dbsnp.vcf",
     build = "b157",
@@ -64,20 +66,24 @@ test_that("coerces case", {
 })
 
 test_that("no filters needed for dummy partition", {
+
   result <- load_dataset("ukb_ppp.assays")
   expect_s3_class(result, "tbl_lazy")
 })
 
 test_that("returns a lazy tbl", {
+
   expect_s3_class(dbsnp(), "tbl_lazy")
 })
 
 test_that("collect returns data", {
+
   df <- head(dbsnp(), 5) |> dplyr::collect()
   expect_equal(nrow(df), 5L)
 })
 
 test_that("select limits columns", {
+
   df <- dbsnp() |>
     dplyr::select(chromosome, position) |>
     head(5) |>
@@ -86,6 +92,7 @@ test_that("select limits columns", {
 })
 
 test_that("filter narrows results", {
+
   df <- head(dbsnp(), 5) |> dplyr::collect()
   expect_equal(nrow(df), 5L)
   expect_equal(unique(df$chromosome), "22")

@@ -17,7 +17,7 @@ License: GPL (>= 3)
 URL: https://bedrock.bio,
     https://github.com/bedrock-bio/bedrock-bio-client
 BugReports: https://github.com/bedrock-bio/bedrock-bio-client/issues
-Depends: R (>= 4.3)
+Depends: R (>= 4.1)
 Imports:
     curl,
     DBI,
@@ -28,6 +28,7 @@ Imports:
 Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+OS_type: unix
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
