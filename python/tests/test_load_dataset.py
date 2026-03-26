@@ -43,11 +43,14 @@ class TestLoadDataset:
         result = load_dataset("ukb_ppp.assays")
         assert isinstance(result, duckdb.DuckDBPyRelation)
 
-    def test_return_type(self):
+    def test_filters_in_query(self):
         result = load_dataset(
             "dbsnp.vcf", build="b157", assembly="GRCh38", chromosome="22"
         )
-        assert isinstance(result, duckdb.DuckDBPyRelation)
+        plan = result.explain()
+        assert "build" in plan
+        assert "assembly" in plan
+        assert "chromosome" in plan
 
     def test_collect(self):
         result = load_dataset(

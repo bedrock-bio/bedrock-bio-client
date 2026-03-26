@@ -77,11 +77,14 @@ def load_dataset(name: str, **filters: str) -> duckdb.DuckDBPyRelation:
                     )
         coerced[col] = val
 
+    query = f"SELECT * FROM iceberg_scan('{entry['metadata_json']}')"
+
+    if coerced:
+        conditions = []
+        for col, val in coerced.items():
+            safe_val = val.replace("'", "''")
+            conditions.append(f"{col} = '{safe_val}'")
+        query += " WHERE " + " AND ".join(conditions)
+
     conn = config.get_connection()
-    rel = conn.sql(f"SELECT * FROM iceberg_scan('{entry['metadata_json']}')")
-
-    for col, val in coerced.items():
-        safe_val = val.replace("'", "''")
-        rel = rel.filter(f"{col} = '{safe_val}'")
-
-    return rel
+    return conn.sql(query)
